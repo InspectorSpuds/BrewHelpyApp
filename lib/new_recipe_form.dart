@@ -1,5 +1,9 @@
+import 'package:brewhelpy/form_action_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:brewhelpy/recipe.dart';
+import 'package:brewhelpy/quantity_field.dart';
+
+import 'name_field.dart';
 
 class NewRecipeForm extends StatefulWidget {
 
@@ -38,6 +42,12 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
     });
   }
 
+  void _deleteStep(int index){
+    setState(() {
+      _stepsControllers.removeAt(index);
+    });
+  }
+
 
   void _onSave() {
     if(_formKey.currentState?.validate() ?? false) {
@@ -69,29 +79,37 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
         child: SingleChildScrollView(
             child: Column(
               children: [
-                _NameField(_nameController, 'Name'),
-                _NameField(_brewMethodController, 'Brew Method'),
-                _QuantityField(_coffeeMassController, 'Coffee Mass (in grams)'),
-                _QuantityField(_brewTempController, 'Brew Temperature (in Celsius)'),
-                _QuantityField(_totalTimeController, 'Total Brew Time (in minutes)'),
-                _ActionButtons(_onSave),
-                ..._stepsControllers.map((controller){
-                  int index = _stepsControllers.indexOf(controller);
-                  return TextFormField(
-                    key: Key('Step ${index + 1}'),
-                    decoration: InputDecoration(
-                      labelText: 'Step ${index + 1}',
-                    ),
-                    controller: controller,
-                    validator: (value) {
-                      if(value == null || value.trim().isEmpty){
-                        return 'Step cannot be empty.';
-                      }
-                      return null;
-                    },
-                  );
-                }
+                NameField(nameController: _nameController, label: 'Name'),
+                NameField(nameController: _brewMethodController, label: 'Brew Method'),
+                QuantityField(quantityController:  _coffeeMassController, label: 'Coffee Mass (in grams)'),
+                QuantityField(quantityController: _brewTempController, label: 'Brew Temperature (in Celsius)'),
+                QuantityField(quantityController: _totalTimeController, label: 'Total Brew Time (in minutes)'),
+                ActionButtons(onSave: _onSave,),
+                ..._stepsControllers.asMap().entries.map(
+                        (controller) => Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                key: Key('Step ${controller.key + 1}'),
+                                decoration: InputDecoration(
+                                  labelText: 'Step ${controller.key + 1}',
+                                ),
+                                controller: controller.value,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Step cannot be empty.';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            IconButton(
+                                onPressed: () => _deleteStep(controller.key),
+                                icon: const Icon(Icons.delete))
+                          ]
+                        )
                 ),
+
                 ElevatedButton(
                   onPressed: _addStep,
                   style: ElevatedButton.styleFrom(
@@ -102,90 +120,6 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
               ],
             )
         )
-    );
-  }
-}
-
-class _NameField extends StatelessWidget {
-  final TextEditingController nameController;
-  const _NameField(this.nameController, this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      key: Key(label),
-      decoration:InputDecoration(
-          labelText: label
-      ),
-      controller: nameController,
-      validator: (value) {
-        if(value == null || value.trim().isEmpty) {
-          return 'Name cannot be empty.';
-        }
-        return null;
-      },
-    );
-  }
-}
-
-
-
-class _QuantityField extends StatelessWidget {
-  final TextEditingController quantityController;
-  final String label;
-  const _QuantityField(this.quantityController, this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      key: Key(label),
-      decoration: InputDecoration(
-          labelText: label
-      ),
-      keyboardType: TextInputType.number,
-      controller: quantityController,
-      validator: (value) {
-        if(value == null || value.trim().isEmpty) {
-          return 'Quantity cannot be empty.';
-        }
-        int? asInt = int.tryParse(value);
-        if(asInt == null) {
-          return 'Quantity must be a whole number.';
-        }
-        if(asInt <= 0) {
-          return 'Quantity must be positive.';
-        }
-        return null;
-      },
-    );
-  }
-}
-
-
-class _ActionButtons extends StatelessWidget {
-  final void Function() onSave;
-  const _ActionButtons(this.onSave);
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        OutlinedButton(
-          onPressed: () { Navigator.pop(context); },
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: onSave,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Theme.of(context).colorScheme.onPrimary,
-          ),
-          child: const Text('Save'),
-        ),
-      ],
     );
   }
 }

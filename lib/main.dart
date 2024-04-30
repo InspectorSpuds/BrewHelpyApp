@@ -1,4 +1,5 @@
 
+import 'package:brewhelpy/modify_recipe_form.dart';
 import 'package:brewhelpy/new_recipe_form.dart';
 import 'package:flutter/material.dart';
 
@@ -46,6 +47,15 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _modifyRecipeForm(){
+    setState(() {
+      showDialog(context: context,
+          builder: (context) => const Dialog.fullscreen(
+            child: ModifyRecipeForm(),
+          ));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -53,7 +63,12 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Center(
         child: Text(widget.title),
-        )
+        ),
+        actions: [
+          IconButton(
+              onPressed: _modifyRecipeForm,
+              icon: const Icon(Icons.edit))
+        ],
       ),
 
       bottomNavigationBar: BottomNavigationBar(
