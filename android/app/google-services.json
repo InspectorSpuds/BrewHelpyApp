@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "641902590935",
+    "project_id": "brewhelpy",
+    "storage_bucket": "brewhelpy.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:641902590935:android:4db759cae6912f0216e992",
+        "android_client_info": {
+          "package_name": "com.example.brewhelpy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_XKIhlHhVS5ZAc3TIBRE0ULmbnEjz3zc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

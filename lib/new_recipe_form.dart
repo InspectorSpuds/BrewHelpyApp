@@ -1,9 +1,11 @@
+import 'package:brewhelpy/service/database_handler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:brewhelpy/recipe.dart';
 
 class NewRecipeForm extends StatefulWidget {
-
-  const NewRecipeForm({super.key});
+  DbHandler _handler;
+  NewRecipeForm(this._handler, {super.key});
 
   @override
   State<NewRecipeForm> createState() => _NewRecipeFormState();
@@ -41,7 +43,16 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
       );
 
       // need to add to database from here
-
+      FirebaseFirestore.instance.collection('Recipe').add({
+        'brewMethod' : {
+          'units': 'Celsius',
+          'value': newRecipe.brewMethod,
+        },
+        'coffeeMass': newRecipe.coffeeMass,
+        'name': newRecipe.name,
+        'totalTime': "$newRecipe.totalTime",
+        'userID' : "null" //for now we're keeping it null till we connect our login form
+      });
 
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

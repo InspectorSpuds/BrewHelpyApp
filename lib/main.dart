@@ -1,13 +1,27 @@
 
 import 'package:brewhelpy/new_recipe_form.dart';
+import 'package:brewhelpy/service/database_handler.dart';
+import 'package:brewhelpy/service/firebase_options.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async{//connect to firebase
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  DbHandler handler = DbHandler();
+  await handler.init();
+  runApp(MyApp(handler));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  DbHandler _handler;
+
+  MyApp(this._handler, {super.key});
 
   // This widget is the root of your application.
   @override
@@ -16,16 +30,18 @@ class MyApp extends StatelessWidget {
       title: 'BrewHelpy',
       theme: ThemeData(
 
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'BrewHelpy'),
+      home: MyHomePage(this._handler, title: 'BrewHelpy'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  DbHandler _handler;
+
+  MyHomePage(this._handler, {super.key, required this.title});
 
 
   final String title;
@@ -40,12 +56,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void _showNewRecipeForm(){
     setState(() {
       showDialog(context: context,
-          builder: (context) => const Dialog.fullscreen(
-            child: NewRecipeForm(),
+          builder: (context) =>  Dialog.fullscreen(
+            child: NewRecipeForm(widget._handler),
           ));
     });
   }
-
+  
   @override
   Widget build(BuildContext context) {
 
@@ -55,7 +71,44 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Text(widget.title),
         )
       ),
+      body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
 
+          children: [
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('Recipe').snapshots(),
+                builder: (BuildContext context, var snapshot) {
+                  if (snapshot.hasError) {
+                    return Text(snapshot.error.toString());
+                  }
+                      
+                  else {
+                    return ListView.builder(
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+
+                        itemCount: snapshot.data?.size,
+                        itemBuilder: (context, index) {
+                          var data = snapshot.data?.docs[index];
+                          return Row(
+                            children: [
+                              Text("${data?['name']}"),
+                              Text("dosage: ${data?['coffeeMass']}"),
+                              Text("Temp: ${data?['brewMethod']['value']} ${data?['brewMethod']['units'] == "Celsius" ? "C" : "F"}"),
+                              Text("Time: ${data?['totalTime']}"),
+                              Spacer(),
+                            ],
+                          );
+                        }
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(
