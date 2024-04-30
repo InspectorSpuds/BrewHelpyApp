@@ -6,6 +6,7 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:brewhelpy/new_recipe_form.dart';
+import 'package:brewhelpy/service/database_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:brewhelpy/main.dart';
@@ -13,7 +14,7 @@ import 'package:brewhelpy/main.dart';
 void main() {
   testWidgets('Filling Out New Recipe Form', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(DbHandler()));
 
     await tester.tap(find.byType(FloatingActionButton));
     await tester.pumpAndSettle();
