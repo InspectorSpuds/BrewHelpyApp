@@ -4,6 +4,7 @@ class Recipe {
   final int coffeeMass;
   final int brewTemp;
   final int totalTime;
+  final List<String> steps;
 
   Recipe ({
     required this.name,
@@ -11,5 +12,6 @@ class Recipe {
     required this.coffeeMass,
     required this.brewTemp,
     required this.totalTime,
+    required this.steps,
   });
 }

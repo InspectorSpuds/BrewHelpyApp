@@ -80,10 +80,10 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showNewRecipeForm,
-        child: const Column(
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.add),
-            Text('Recipe'),
           ],
         )
       ),
