@@ -1,4 +1,3 @@
-
 import 'package:brewhelpy/new_recipe_form.dart';
 import 'package:brewhelpy/service/database_handler.dart';
 import 'package:brewhelpy/service/firebase_options.dart';
@@ -6,7 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() async{//connect to firebase
+void main() async {
+  //connect to firebase
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
@@ -29,7 +29,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'BrewHelpy',
       theme: ThemeData(
-
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
@@ -43,7 +42,6 @@ class MyHomePage extends StatefulWidget {
 
   MyHomePage(this._handler, {super.key, required this.title});
 
-
   final String title;
 
   @override
@@ -53,67 +51,63 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = -1;
 
-  void _showNewRecipeForm(){
+  void _showNewRecipeForm() {
     setState(() {
-      showDialog(context: context,
-          builder: (context) =>  Dialog.fullscreen(
-            child: NewRecipeForm(widget._handler),
-          ));
+      showDialog(
+          context: context,
+          builder: (context) => Dialog.fullscreen(
+                child: NewRecipeForm(widget._handler),
+              ));
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-        title: Center(
+          title: Center(
         child: Text(widget.title),
-        )
-      ),
+      )),
       body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-
-          children: [
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('Recipe').snapshots(),
-                builder: (BuildContext context, var snapshot) {
-                  if (snapshot.hasError) {
-                    return Text(snapshot.error.toString());
-                  }
-                      
-                  else {
-                    return ListView.builder(
-                        scrollDirection: Axis.vertical,
-                        shrinkWrap: true,
-
-                        itemCount: snapshot.data?.size,
-                        itemBuilder: (context, index) {
-                          var data = snapshot.data?.docs[index];
-                          return Row(
-                            children: [
-                              Text("${data?['name']}"),
-                              Text("dosage: ${data?['coffeeMass']}"),
-                              Text("Temp: ${data?['brewMethod']['value']} ${data?['brewMethod']['units'] == "Celsius" ? "C" : "F"}"),
-                              Text("Time: ${data?['totalTime']}"),
-                              Spacer(),
-                            ],
-                          );
-                        }
-                    );
-                  }
-                },
-              ),
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream:
+                  FirebaseFirestore.instance.collection('Recipe').snapshots(),
+              builder: (BuildContext context, var snapshot) {
+                if (snapshot.hasError) {
+                  return Text(snapshot.error.toString());
+                } else {
+                  return ListView.builder(
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      itemCount: snapshot.data?.size,
+                      itemBuilder: (context, index) {
+                        var data = snapshot.data?.docs[index];
+                        return Row(
+                          children: [
+                            Text("${data?['name']}"),
+                            Text("dosage: ${data?['coffeeMass']}"),
+                            Text(
+                                "Temp: ${data?['brewMethod']['value']} ${data?['brewMethod']['units'] == "Celsius" ? "C" : "F"}"),
+                            Text("Time: ${data?['totalTime']}"),
+                            Spacer(),
+                          ],
+                        );
+                      });
+                }
+              },
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(Icons.coffee_maker),
-              label: 'View Recipes',
+            icon: Icon(Icons.coffee_maker),
+            label: 'View Recipes',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -132,14 +126,13 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showNewRecipeForm,
-        child: const Column(
-          children: [
-            Icon(Icons.add),
-            Text('Recipe'),
-          ],
-        )
-      ),
+          onPressed: _showNewRecipeForm,
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add),
+            ],
+          )),
     );
   }
 }

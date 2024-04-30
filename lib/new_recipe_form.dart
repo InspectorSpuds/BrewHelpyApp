@@ -18,7 +18,7 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
   final _coffeeMassController = TextEditingController();
   final _brewTempController = TextEditingController();
   final _totalTimeController = TextEditingController();
-
+  final _stepsControllers = <TextEditingController>[TextEditingController()];
 
   @override
   void dispose() {
@@ -28,36 +28,47 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
     _coffeeMassController.dispose();
     _brewTempController.dispose();
     _totalTimeController.dispose();
+    for (final controller in _stepsControllers) {
+      controller.dispose();
+    }
   }
 
+  void _addStep() {
+    setState(() {
+      _stepsControllers.add(TextEditingController());
+    });
+  }
 
   void _onSave() {
-    if(_formKey.currentState?.validate() ?? false) {
+    if (_formKey.currentState?.validate() ?? false) {
+      final List<String> steps =
+          _stepsControllers.map((controller) => controller.text).toList();
+
       final newRecipe = Recipe(
         name: _nameController.text,
         brewMethod: _brewMethodController.text,
         coffeeMass: int.parse(_coffeeMassController.text),
         brewTemp: int.parse(_brewTempController.text),
         totalTime: int.parse(_totalTimeController.text),
-
+        steps: steps,
       );
 
       // need to add to database from here
       FirebaseFirestore.instance.collection('Recipe').add({
-        'brewMethod' : {
+        'brewMethod': {
           'units': 'Celsius',
           'value': newRecipe.brewMethod,
         },
         'coffeeMass': newRecipe.coffeeMass,
         'name': newRecipe.name,
         'totalTime': "$newRecipe.totalTime",
-        'userID' : "null" //for now we're keeping it null till we connect our login form
+        'userID':
+            "null" //for now we're keeping it null till we connect our login form
       });
 
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${_nameController.text} added to recipes.')
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${_nameController.text} added to recipes.')));
     }
   }
 
@@ -67,33 +78,57 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
         key: _formKey,
         child: SingleChildScrollView(
             child: Column(
-              children: [
-                _NameField(_nameController),
-                _QuantityField(_brewMethodController, 'Brew Method'),
-                _QuantityField(_coffeeMassController, 'Coffee Mass'),
-                _QuantityField(_brewTempController, 'Brew Temperature'),
-                _QuantityField(_totalTimeController, 'Total Brew Time (in minutes)'),
-                _ActionButtons(_onSave),
-              ],
+          children: [
+            _NameField(_nameController, 'Name'),
+            _NameField(_brewMethodController, 'Brew Method'),
+            _QuantityField(_coffeeMassController, 'Coffee Mass (in grams)'),
+            _QuantityField(
+                _brewTempController, 'Brew Temperature (in Celsius)'),
+            _QuantityField(
+                _totalTimeController, 'Total Brew Time (in minutes)'),
+            _ActionButtons(_onSave),
+            ..._stepsControllers.map((controller) {
+              int index = _stepsControllers.indexOf(controller);
+              return TextFormField(
+                key: Key('Step ${index + 1}'),
+                decoration: InputDecoration(
+                  labelText: 'Step ${index + 1}',
+                ),
+                controller: controller,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Step cannot be empty.';
+                  }
+                  return null;
+                },
+              );
+            }),
+            ElevatedButton(
+              onPressed: _addStep,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              ),
+              child: const Text('Add Step'),
             )
-        )
-    );
+          ],
+        )));
   }
 }
 
 class _NameField extends StatelessWidget {
   final TextEditingController nameController;
-  const _NameField(this.nameController);
+  const _NameField(this.nameController, this.label);
+  final String label;
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      decoration: const InputDecoration(
-          labelText: 'Name'
-      ),
+      key: Key(label),
+      decoration: InputDecoration(labelText: label),
       controller: nameController,
       validator: (value) {
-        if(value == null || value.trim().isEmpty) {
+        if (value == null || value.trim().isEmpty) {
           return 'Name cannot be empty.';
         }
         return null;
@@ -101,8 +136,6 @@ class _NameField extends StatelessWidget {
     );
   }
 }
-
-
 
 class _QuantityField extends StatelessWidget {
   final TextEditingController quantityController;
@@ -112,20 +145,19 @@ class _QuantityField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      decoration: InputDecoration(
-          labelText: label
-      ),
+      key: Key(label),
+      decoration: InputDecoration(labelText: label),
       keyboardType: TextInputType.number,
       controller: quantityController,
       validator: (value) {
-        if(value == null || value.trim().isEmpty) {
+        if (value == null || value.trim().isEmpty) {
           return 'Quantity cannot be empty.';
         }
         int? asInt = int.tryParse(value);
-        if(asInt == null) {
+        if (asInt == null) {
           return 'Quantity must be a whole number.';
         }
-        if(asInt <= 0) {
+        if (asInt <= 0) {
           return 'Quantity must be positive.';
         }
         return null;
@@ -133,7 +165,6 @@ class _QuantityField extends StatelessWidget {
     );
   }
 }
-
 
 class _ActionButtons extends StatelessWidget {
   final void Function() onSave;
@@ -145,7 +176,9 @@ class _ActionButtons extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         OutlinedButton(
-          onPressed: () { Navigator.pop(context); },
+          onPressed: () {
+            Navigator.pop(context);
+          },
           child: const Text('Cancel'),
         ),
         ElevatedButton(
