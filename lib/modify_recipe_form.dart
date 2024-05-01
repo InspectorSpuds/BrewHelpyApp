@@ -2,13 +2,15 @@
 import 'package:brewhelpy/quantity_field.dart';
 import 'package:brewhelpy/form_action_buttons.dart';
 import 'package:brewhelpy/recipe.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:brewhelpy/service/database_handler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'name_field.dart';
 
 class ModifyRecipeForm extends StatefulWidget {
-  const ModifyRecipeForm({super.key});
+  DbHandler _handler;
+  ModifyRecipeForm(this._handler, {super.key});
 
   // retrieve recipe from database
 
@@ -19,10 +21,9 @@ class ModifyRecipeForm extends StatefulWidget {
 class _ModifyRecipeFormState extends State<ModifyRecipeForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // REPLACE THIS WITH DATABASE RETRIEVE
-
+  // REPLACE THIS WITH DATABASE RETRIEVE, EXAMPLE TO TEST IF IT WORKED
+  ///////////////////////////////////////////////////////////////////
   List<String> steps = ['Step 1'];
-
   late final TextEditingController _nameController = TextEditingController(text: "Name");
   late final TextEditingController _brewMethodController = TextEditingController(text: "Method");
   late final TextEditingController _coffeeMassController = TextEditingController(text: 1.toString());
@@ -38,9 +39,17 @@ class _ModifyRecipeFormState extends State<ModifyRecipeForm> {
     });
   }
 
+  void _deleteStep(int index){
+    setState(() {
+      _stepsControllers.removeAt(index);
+    });
+  }
+
+
   void _onSave() {
     if(_formKey.currentState?.validate() ?? false) {
-      final List<String> steps = _stepsControllers.map((controller) => controller.text).toList();
+      final List<String> steps =
+      _stepsControllers.map((controller) => controller.text).toList();
 
       final newRecipe = Recipe(
         name: _nameController.text,
@@ -52,7 +61,17 @@ class _ModifyRecipeFormState extends State<ModifyRecipeForm> {
       );
 
       // need to add to database from here
-
+      FirebaseFirestore.instance.collection('Recipe').add({
+        'brewMethod': {
+          'units': 'Celsius',
+          'value': newRecipe.brewMethod,
+        },
+        'coffeeMass': newRecipe.coffeeMass,
+        'name': newRecipe.name,
+        'totalTime': "$newRecipe.totalTime",
+        'userID':
+        "null" //for now we're keeping it null till we connect our login form
+      });
 
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -74,22 +93,29 @@ class _ModifyRecipeFormState extends State<ModifyRecipeForm> {
                 QuantityField(quantityController: _brewTempController, label: 'Brew Temperature (in Celsius)'),
                 QuantityField(quantityController: _totalTimeController, label: 'Total Brew Time (in minutes)'),
                 ActionButtons(onSave: _onSave,),
-                ..._stepsControllers.map((controller){
-                  int index = _stepsControllers.indexOf(controller);
-                  return TextFormField(
-                    key: Key('Step ${index + 1}'),
-                    decoration: InputDecoration(
-                      labelText: 'Step ${index + 1}',
-                    ),
-                    controller: controller,
-                    validator: (value) {
-                      if(value == null || value.trim().isEmpty){
-                        return 'Step cannot be empty.';
-                      }
-                      return null;
-                    },
-                  );
-                }
+                ..._stepsControllers.asMap().entries.map(
+                        (controller) => Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              key: Key('Step ${controller.key + 1}'),
+                              decoration: InputDecoration(
+                                labelText: 'Step ${controller.key + 1}',
+                              ),
+                              controller: controller.value,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Step cannot be empty.';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          IconButton(
+                              onPressed: () => _deleteStep(controller.key),
+                              icon: const Icon(Icons.delete))
+                        ]
+                    )
                 ),
                 ElevatedButton(
                   onPressed: _addStep,

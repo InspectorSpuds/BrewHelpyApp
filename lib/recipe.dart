@@ -6,7 +6,7 @@ class Recipe {
   final int totalTime;
   final List<String> steps;
 
-  Recipe ({
+  Recipe({
     required this.name,
     required this.brewMethod,
     required this.coffeeMass,

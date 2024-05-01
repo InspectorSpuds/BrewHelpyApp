@@ -1,4 +1,6 @@
 import 'package:brewhelpy/form_action_buttons.dart';
+import 'package:brewhelpy/service/database_handler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:brewhelpy/recipe.dart';
 import 'package:brewhelpy/quantity_field.dart';
@@ -6,8 +8,8 @@ import 'package:brewhelpy/quantity_field.dart';
 import 'name_field.dart';
 
 class NewRecipeForm extends StatefulWidget {
-
-  const NewRecipeForm({super.key});
+  DbHandler _handler;
+  NewRecipeForm(this._handler, {super.key});
 
   @override
   State<NewRecipeForm> createState() => _NewRecipeFormState();
@@ -22,7 +24,6 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
   final _totalTimeController = TextEditingController();
   final _stepsControllers = <TextEditingController>[TextEditingController()];
 
-
   @override
   void dispose() {
     super.dispose();
@@ -31,12 +32,12 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
     _coffeeMassController.dispose();
     _brewTempController.dispose();
     _totalTimeController.dispose();
-    for(final controller in _stepsControllers){
+    for (final controller in _stepsControllers) {
       controller.dispose();
     }
   }
 
-  void _addStep(){
+  void _addStep() {
     setState(() {
       _stepsControllers.add(TextEditingController());
     });
@@ -48,10 +49,10 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
     });
   }
 
-
   void _onSave() {
-    if(_formKey.currentState?.validate() ?? false) {
-      final List<String> steps = _stepsControllers.map((controller) => controller.text).toList();
+    if (_formKey.currentState?.validate() ?? false) {
+      final List<String> steps =
+          _stepsControllers.map((controller) => controller.text).toList();
 
       final newRecipe = Recipe(
         name: _nameController.text,
@@ -63,12 +64,21 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
       );
 
       // need to add to database from here
-
+      FirebaseFirestore.instance.collection('Recipe').add({
+        'brewMethod': {
+          'units': 'Celsius',
+          'value': newRecipe.brewMethod,
+        },
+        'coffeeMass': newRecipe.coffeeMass,
+        'name': newRecipe.name,
+        'totalTime': "$newRecipe.totalTime",
+        'userID':
+            "null" //for now we're keeping it null till we connect our login form
+      });
 
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${_nameController.text} added to recipes.')
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${_nameController.text} added to recipes.')));
     }
   }
 
@@ -109,7 +119,6 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
                           ]
                         )
                 ),
-
                 ElevatedButton(
                   onPressed: _addStep,
                   style: ElevatedButton.styleFrom(
@@ -119,7 +128,9 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
                 )
               ],
             )
+
+
         )
-    );
+        );
   }
 }
