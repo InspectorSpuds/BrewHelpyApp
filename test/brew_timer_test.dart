@@ -1,4 +1,4 @@
-import 'dart:async';
+//Author: Ishan Parikh
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,8 +19,7 @@ void main() {
     expect(state.timer, isNotNull);
   });
 
-  testWidgets('Brew Timer should stop timer successfully after waiting', (
-      WidgetTester tester) async {
+  testWidgets('Brew Timer should stop timer successfully after waiting', (WidgetTester tester) async {
     //Arrange
     var widget = BrewTimer("");
     await tester.pumpWidget(MaterialApp(home: widget));
