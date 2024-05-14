@@ -1,4 +1,4 @@
-
+//Author: ishan parikh
 import 'package:brewhelpy/brew_timer.dart';
 import 'package:brewhelpy/login.dart';
 import 'package:brewhelpy/modify_recipe_form.dart';
@@ -18,7 +18,7 @@ void main() async {
   );
 
   DbHandler handler = DbHandler();
-  await handler.init();
+  handler.init();
   runApp(MyApp(handler));
 }
 

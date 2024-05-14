@@ -20,7 +20,7 @@ class DbHandler {
     _db = FakeFirebaseFirestore();
   }
 
-  Future<void> init() async  {
+  void init()  {
     _db = FirebaseFirestore.instance;
   }
 
@@ -56,6 +56,14 @@ class DbHandler {
       }).toList(),
     });
   }
+
+  Future<DocumentReference> addUser(String username, String password) async {
+    return _db.collection('User').add({
+      'email': username,
+      'password': password,
+    });
+  }
+
 
   Future<DocumentReference> getRecipes()  {
     return _db.collection('Recipes').get();
