@@ -95,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ],
     ),
-    BrewTimer(),
+    BrewTimer(""),
     LoginScreen(),
   ];
 

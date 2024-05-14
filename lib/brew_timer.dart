@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
 
 class BrewTimer extends StatefulWidget {
-  const BrewTimer({super.key});
+  final String recipeKey;
+
+  const BrewTimer(this.recipeKey, {super.key});
 
   @override
   State<BrewTimer> createState() => _BrewTimerState();
 }
 
 class _BrewTimerState extends State<BrewTimer> {
-
+  //timer variables
+  String messageBoard = "Starting timer";
+  Duration duration = Duration(minutes: 2, seconds: 2);
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text("testing testing"),
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(messageBoard),
+
+        ],
+      )
     );
   }
 }
