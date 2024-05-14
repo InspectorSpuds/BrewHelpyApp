@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 class BrewTimer extends StatefulWidget {
@@ -9,10 +7,10 @@ class BrewTimer extends StatefulWidget {
   const BrewTimer(this.recipeKey, {super.key});
 
   @override
-  State<BrewTimer> createState() => _BrewTimerState();
+  State<BrewTimer> createState() => BrewTimerState();
 }
 
-class _BrewTimerState extends State<BrewTimer> {
+class BrewTimerState extends State<BrewTimer> {
   //timer variables
   Timer? timer;
   List<Map<String, dynamic>> steps = [
@@ -23,7 +21,7 @@ class _BrewTimerState extends State<BrewTimer> {
     },
     {
       "mass" : 100,
-      "timestamp": "0:00"
+      "timestamp": "1:00"
     }
   ];
   int nextMinutes = 0;
@@ -34,12 +32,17 @@ class _BrewTimerState extends State<BrewTimer> {
 
   //ui vars
   int step = 0;
-  String messageBoard = "Add mass";
+  String messageBoard = "Start Brew when ready";
   int minutes = 0;
   int seconds = 0;
 
   void startTimer() {
     //get the final conditions
+    setState(() {
+      seconds = 0;
+      minutes = 0;
+    });
+
     step = 0;
     stopMinutes = int.parse(steps[steps.length - 1]['timestamp'].split(":")[0]);
     stopSeconds = int.parse(steps[steps.length - 1]['timestamp'].split(":")[1]);
@@ -49,15 +52,15 @@ class _BrewTimerState extends State<BrewTimer> {
     nextSeconds = int.parse(steps[step]['timestamp'].split(":")[1]);
     messageBoard = "Add to ${steps[step]['mass']}g by ${steps[step]['timestamp']}";
 
-    print("$nextMinutes : $nextSeconds");
-
     //set periodic time
     timer = Timer.periodic(const Duration(seconds: 1), (_) => addTimer());
   }
 
   void stopTimer() {
     timer?.cancel();
+    timer = null;
     setState(() {
+      messageBoard = "Start Brew when ready";
       seconds = 0;
       minutes = 0;
     });
