@@ -1,6 +1,7 @@
-//Author: Eugene Keehan
+// Author: Eugene Keehan
 
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,8 +16,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() {
     // TODO
-    print(
-        'Login with: ${_usernameController.text}, ${_passwordController.text}');
+    print('Login with: ${_usernameController.text}, ${_passwordController.text}');
+  }
+
+  void _navigateToCreateUser() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CreateUserForm()), // Removed const
+    );
   }
 
   @override
@@ -41,9 +48,83 @@ class _LoginScreenState extends State<LoginScreen> {
               obscureText: true,
             ),
             const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: _login,
+                  child: const Text('Log In'),
+                ),
+                ElevatedButton(
+                  onPressed: _navigateToCreateUser,
+                  child: const Text('Create User'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CreateUserForm extends StatefulWidget {
+  final FirebaseAuth auth;
+
+  CreateUserForm({super.key, FirebaseAuth? auth})
+      : auth = auth ?? FirebaseAuth.instance;
+
+  @override
+  _CreateUserFormState createState() => _CreateUserFormState();
+}
+
+class _CreateUserFormState extends State<CreateUserForm> {
+  final _newUsernameController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+
+  void _createUser() async {
+    try {
+      UserCredential userCredential = await widget.auth.createUserWithEmailAndPassword(
+        email: _newUsernameController.text,
+        password: _newPasswordController.text,
+      );
+      print('Creating user with: ${_newUsernameController.text}, ${_newPasswordController.text}');
+      // Navigate to the home screen or show a success message
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      print('Failed to create user: $e');
+      // Show an error message to the user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create user: ${e.message}')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text('Create User'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            TextField(
+              controller: _newUsernameController,
+              decoration: const InputDecoration(labelText: 'New Username'),
+            ),
+            TextField(
+              controller: _newPasswordController,
+              decoration: const InputDecoration(labelText: 'New Password'),
+              obscureText: true,
+            ),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _login,
-              child: const Text('Log In'),
+              onPressed: _createUser,
+              child: const Text('Create User'),
             ),
           ],
         ),
