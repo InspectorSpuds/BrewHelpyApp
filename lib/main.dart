@@ -34,6 +34,11 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        /* dark theme settings */
+      ),
+      themeMode: ThemeMode.dark,
       home: MyHomePage(this._handler, title: 'BrewHelpy'),
     );
   }
@@ -86,62 +91,80 @@ class _MyHomePageState extends State<MyHomePage> {
           icon: const Icon(Icons.edit))
         ],
     ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance.collection('Recipe').snapshots(),
-              builder: (BuildContext context, var snapshot) {
-                if (snapshot.hasError) {
-                  return Text(snapshot.error.toString());
-                } else {
-                  return ListView.builder(
-                      scrollDirection: Axis.vertical,
-                      shrinkWrap: true,
-                      itemCount: snapshot.data?.size,
-                      itemBuilder: (context, index) {
-                        var data = snapshot.data?.docs[index];
-                        return Row(
-                          children: [
-                            Text("${data?['name']}"),
-                            Text("dosage: ${data?['coffeeMass']}"),
-                            Text(
-                                "Temp: ${data?['brewMethod']['value']} ${data?['brewMethod']['units'] == "Celsius" ? "C" : "F"}"),
-                            Text("Time: ${data?['totalTime']}"),
-                            Spacer(),
-                          ],
-                        );
-                      });
-                }
-              },
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream:
+                    FirebaseFirestore.instance.collection('Recipe').snapshots(),
+                builder: (BuildContext context, var snapshot) {
+                  if (snapshot.hasError) {
+                    return Text(snapshot.error.toString());
+                  } else {
+                    return ListView.builder(
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        itemCount: snapshot.data?.size,
+                        itemBuilder: (context, index) {
+                          var data = snapshot.data?.docs[index];
+                          return Row(
+                            children: [
+                              Text("${data?['name']}"),
+                              Text("dosage: ${data?['coffeeMass']}"),
+                              Text(
+                                  "Temp: ${data?['brewMethod']['value']} ${data?['brewMethod']['units'] == "Celsius" ? "C" : "F"}"),
+                              Text("Time: ${data?['totalTime']}"),
+                              Spacer(),
+                            ],
+                          );
+                        });
+                  }
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.coffee_maker),
-            label: 'View Recipes',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.timer),
-            label: 'Current Brews',
-          ),
-        ],
-        // currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+      bottomNavigationBar: new Theme(
+        data: Theme.of(context).copyWith(
+          // sets the background color of the `BottomNavigationBar`
+            canvasColor: Colors.green,
+            // sets the active color of the `BottomNavigationBar` if `Brightness` is light
+            primaryColor: Colors.red,
+            textTheme: Theme
+                .of(context)
+                .textTheme
+                .copyWith(caption: new TextStyle(color: Colors.yellow))),
+        child: BottomNavigationBar(
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.coffee_maker),
+              label: 'View Recipes',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.timer),
+              label: 'Current Brews',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_box),
+              label: 'Login',
+            ),
+        
+          ],
+          // currentIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
           onPressed: _showNewRecipeForm,
