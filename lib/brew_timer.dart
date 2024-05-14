@@ -11,6 +11,7 @@ class BrewTimer extends StatefulWidget {
 
 class _BrewTimerState extends State<BrewTimer> {
   //timer variables
+  int step = 0;
   String messageBoard = "Starting timer";
   Duration duration = Duration(minutes: 2, seconds: 2);
 
@@ -20,9 +21,14 @@ class _BrewTimerState extends State<BrewTimer> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(messageBoard),
+          Text("Step $step: $messageBoard"),
+          TextButton(
+              onPressed: () {
 
-        ],
+              },
+              child: const Text("Start"),
+          ),
+        ]
       )
     );
   }

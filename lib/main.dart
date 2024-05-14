@@ -67,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
             stream:
-            FirebaseFirestore.instance.collection('Recipe').snapshots(),
+            FirebaseFirestore.instance.collection('Recipes').snapshots(),
             builder: (BuildContext context, var snapshot) {
               if (snapshot.hasError) {
                 return Text(snapshot.error.toString());

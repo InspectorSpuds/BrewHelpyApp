@@ -20,7 +20,7 @@ class ModifyRecipeForm extends StatefulWidget {
 
 class _ModifyRecipeFormState extends State<ModifyRecipeForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
+  late Recipe _recipe;
   // REPLACE THIS WITH DATABASE RETRIEVE, EXAMPLE TO TEST IF IT WORKED
   ///////////////////////////////////////////////////////////////////
   List<String> steps = ['Step 1'];
@@ -57,7 +57,7 @@ class _ModifyRecipeFormState extends State<ModifyRecipeForm> {
         coffeeMass: int.parse(_coffeeMassController.text),
         brewTemp: int.parse(_brewTempController.text),
         totalTime: int.parse(_totalTimeController.text),
-        steps: steps,
+        steps: [],
       );
 
       // need to add to database from here
@@ -82,16 +82,19 @@ class _ModifyRecipeFormState extends State<ModifyRecipeForm> {
 
   @override
   Widget build(BuildContext context) {
+    if(_recipe == null){
+      return const CircularProgressIndicator();
+    }
     return Form(
         key: _formKey,
         child: SingleChildScrollView(
             child: Column(
               children: [
-                NameField(nameController: _nameController, label: 'Name'),
-                NameField(nameController: _brewMethodController, label: 'Brew Method'),
-                QuantityField(quantityController:  _coffeeMassController, label: 'Coffee Mass (in grams)'),
-                QuantityField(quantityController: _brewTempController, label: 'Brew Temperature (in Celsius)'),
-                QuantityField(quantityController: _totalTimeController, label: 'Total Brew Time (in minutes)'),
+                NameField(nameController: TextEditingController(text: _recipe.name), label: 'Name'),
+                NameField(nameController: TextEditingController(text: _recipe.brewMethod), label: 'Brew Method'),
+                QuantityField(quantityController:  TextEditingController(text: _recipe.coffeeMass.toString()), label: 'Coffee Mass (in grams)'),
+                QuantityField(quantityController: TextEditingController(text: _recipe.brewTemp.toString()), label: 'Brew Temperature (in Celsius)'),
+                QuantityField(quantityController: TextEditingController(text: _recipe.totalTime.toString()), label: 'Total Brew Time (in minutes)'),
                 ActionButtons(onSave: _onSave,),
                 ..._stepsControllers.asMap().entries.map(
                         (controller) => Row(
