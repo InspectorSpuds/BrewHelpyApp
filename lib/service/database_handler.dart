@@ -5,12 +5,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:brewhelpy/recipe_steps.dart';
 import 'package:firebase_core/firebase_core.dart';
+import '../models/user.dart';
 import '../recipe.dart';
 import 'firebase_options.dart';
 
 
 class DbHandler {
   late var _db;
+  late User user;
+
   DBHandler(){}
 
   Future<void> test() async {
@@ -19,6 +22,10 @@ class DbHandler {
 
   Future<void> init() async  {
     _db = FirebaseFirestore.instance;
+  }
+
+  void setUser(User user) {
+    this.user = user;
   }
 
   /*creates a recipe, format:
