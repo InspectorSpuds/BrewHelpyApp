@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:brewhelpy/recipe.dart';
 
 class QuantityField extends StatelessWidget {
   final TextEditingController quantityController;

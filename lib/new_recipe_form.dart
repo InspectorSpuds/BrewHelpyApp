@@ -1,10 +1,13 @@
+//Author: Kevin Bui
 import 'package:brewhelpy/form_action_buttons.dart';
-import 'package:brewhelpy/recipe_steps.dart';
+import 'package:brewhelpy/models/app_state.dart';
+import 'package:brewhelpy/models/recipe_steps.dart';
 import 'package:brewhelpy/service/database_handler.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:brewhelpy/recipe.dart';
+import 'package:brewhelpy/models/recipe.dart';
 import 'package:brewhelpy/quantity_field.dart';
+import 'package:provider/provider.dart';
 
 import 'name_field.dart';
 
@@ -56,7 +59,7 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
     });
   }
 
-  void _onSave() {
+  void _onSave(func) {
     if (_formKey.currentState?.validate() ?? false) {
       final List<RecipeStep> steps = List.generate(
           _waterWeightControllers.length,
@@ -78,73 +81,77 @@ class _NewRecipeFormState extends State<NewRecipeForm> {
 
       // need to add to database from here
       widget._handler.addRecipe(newRecipe);
-      // FirebaseFirestore.instance.collection('Recipe').add({
-      //   'brewMethod': {
-      //     'units': 'Celsius',
-      //     'value': newRecipe.brewMethod,
-      //     'brewTemp':newRecipe.brewTemp,
-      //   },
-      //   'coffeeMass': newRecipe.coffeeMass,
-      //   'name': newRecipe.name,
-      //   'totalTime': "$newRecipe.totalTime",
-      //   'userID':
-      //       "null", //for now we're keeping it null till we connect our login form
-      //   'steps': steps.map((step) => {
-      //     'waterWeight': step.waterWeight,
-      //     'timestamp': step.timestamp,
-      //   }).toList(),
-      // });
 
-      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${_nameController.text} added to recipes.')));
+      func(0);
+    }
+  }
+
+  @override
+  void initState() {
+    if(!widget._handler.isInitialized) {
+      widget._handler.init();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-            child: Column(
-              children: [
-                NameField(nameController: _nameController, label: 'Name'),
-                NameField(nameController: _brewMethodController, label: 'Brew Method'),
-                QuantityField(quantityController:  _coffeeMassController, label: 'Coffee Mass (in grams)'),
-                QuantityField(quantityController: _brewTempController, label: 'Brew Temperature (in Celsius)'),
-                QuantityField(quantityController: _totalTimeController, label: 'Total Brew Time (in minutes)'),
-                ActionButtons(onSave: _onSave,),
-                ..._waterWeightControllers.asMap().entries.map(
-                        (controller) => Row(
-                        children: [
-                          Expanded(
-                            child: QuantityField(quantityController:
-                            controller.value,
-                                label: 'Water Weight ${controller.key + 1} (grams)'),
-                          ),
-                          Expanded(
-                            child: NameField(nameController:
-                            _timestampControllers[controller.key],
-                                label: 'Timestamp ${controller.key + 1} (min:sec)'),
-                          ),
-                          IconButton(
-                              onPressed: () => _deleteStep(controller.key),
-                              icon: const Icon(Icons.delete))
-                        ]
+    if(FirebaseAuth.instance.currentUser == null) {
+      return const Center(
+        child: Text("Login is required to use this feature"),
+      );
+    }
+
+    return Consumer<AppDetails>(
+      builder: (context, provider, child) {
+        return Form(
+            canPop: false,
+            key: _formKey,
+            child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    NameField(nameController: _nameController, label: 'Name'),
+                    NameField(nameController: _brewMethodController, label: 'Brew Method'),
+                    QuantityField(quantityController:  _coffeeMassController, label: 'Coffee Mass (in grams)'),
+                    QuantityField(quantityController: _brewTempController, label: 'Brew Temperature (in Celsius)'),
+                    QuantityField(quantityController: _totalTimeController, label: 'Total Brew Time (in minutes)'),
+                    ActionButtons(onSave: () {
+                      _onSave(provider.updatePage);
+                    },),
+                    ..._waterWeightControllers.asMap().entries.map(
+                            (controller) => Row(
+                            children: [
+                              Expanded(
+                                child: QuantityField(quantityController:
+                                controller.value,
+                                    label: 'Water Weight ${controller.key + 1} (grams)'),
+                              ),
+                              Expanded(
+                                child: NameField(nameController:
+                                _timestampControllers[controller.key],
+                                    label: 'Timestamp ${controller.key + 1} (min:sec)'),
+                              ),
+                              IconButton(
+                                  onPressed: () => _deleteStep(controller.key),
+                                  icon: const Icon(Icons.delete))
+                            ]
+                        )
+                    ),
+                    ElevatedButton(
+                      onPressed: _addStep,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,),
+                      child: const Text('Add Step'),
                     )
-                ),
-                ElevatedButton(
-                  onPressed: _addStep,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,),
-                  child: const Text('Add Step'),
+                  ],
                 )
-              ],
+
+
             )
-
-
-        )
+        );
+      }
     );
   }
 }

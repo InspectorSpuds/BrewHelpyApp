@@ -7,7 +7,7 @@ import 'package:brewhelpy/brew_timer.dart';
 void main() {
   testWidgets('Brew Timer should start timer successfully', (WidgetTester tester) async {
     //Arrange
-    var widget = BrewTimer("");
+    var widget = BrewTimer();
     await tester.pumpWidget(MaterialApp(home: widget));
 
     //Act
@@ -21,7 +21,7 @@ void main() {
 
   testWidgets('Brew Timer should stop timer successfully after waiting', (WidgetTester tester) async {
     //Arrange
-    var widget = BrewTimer("");
+    var widget = BrewTimer();
     await tester.pumpWidget(MaterialApp(home: widget));
 
     //Act

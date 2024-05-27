@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:brewhelpy/recipe.dart';
+import 'package:brewhelpy/models/recipe.dart';
 
 class NameField extends StatelessWidget {
   final TextEditingController nameController;

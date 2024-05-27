@@ -1,7 +1,7 @@
 
 import 'package:brewhelpy/quantity_field.dart';
 import 'package:brewhelpy/form_action_buttons.dart';
-import 'package:brewhelpy/recipe.dart';
+import 'package:brewhelpy/models/recipe.dart';
 import 'package:brewhelpy/service/database_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';

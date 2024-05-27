@@ -3,11 +3,13 @@
 //Purpose: the firebase database handler for the brewhelpy app
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
-import '../recipe.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../models/recipe.dart';
 
 
 class DbHandler {
-  late var _db;
+  late FirebaseFirestore _db;
+  bool _isInitialized = false;
 
   DBHandler(){}
 
@@ -17,31 +19,24 @@ class DbHandler {
 
   void init()  {
     _db = FirebaseFirestore.instance;
+    _isInitialized = true;
   }
 
+  get isInitialized {
+    return _isInitialized;
+  }
 
-  /*creates a recipe, format:
-    brewMethod: {
-      units: str,
-      value: int,
-    },
-    coffeeMass: int,
-    name: str,
-    totalTime: str,
-    userId: str (nullable for now, will require as login is integrated)
-   */
   Future<DocumentReference> addRecipe(Recipe newRecipe) async {
     return _db.collection('Recipes').add({
-      'brewMethod': {
+      'temperature': {
         'units': 'Celsius',
-        'value': newRecipe.brewMethod,
         'brewTemp':newRecipe.brewTemp,
       },
+      'brewMethod': newRecipe.brewMethod,
       'coffeeMass': newRecipe.coffeeMass,
       'name': newRecipe.name,
-      'totalTime': "$newRecipe.totalTime",
-      'userID':
-      "null", //for now we're keeping it null till we connect our login form
+      'totalTime': "${newRecipe.totalTime}",
+      'userId': FirebaseAuth.instance.currentUser?.uid ?? "null",
       'steps': newRecipe.steps.map((step) => {
         'waterWeight': step.waterWeight,
         'timestamp': step.timestamp,
@@ -57,7 +52,7 @@ class DbHandler {
   }
 
 
-  Future<DocumentReference> getRecipes()  {
+  Future<QuerySnapshot<Map<String, dynamic>>> getRecipes()  {
     return _db.collection('Recipes').get();
   }
 

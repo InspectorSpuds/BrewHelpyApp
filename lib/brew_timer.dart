@@ -1,12 +1,13 @@
 //Author: ishan Parikh
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'models/app_state.dart';
 
 class BrewTimer extends StatefulWidget {
-  final String recipeKey;
-
-  const BrewTimer(this.recipeKey, {super.key});
+  const BrewTimer({super.key});
 
   @override
   State<BrewTimer> createState() => BrewTimerState();
@@ -19,14 +20,8 @@ class BrewTimerState extends State<BrewTimer> {
 
   List<Map<String, dynamic>> steps = [
     //note: the timestamps are when to add the mass by
-    {
-      "mass" : 50,
-      "timestamp" : "0:30",
-    },
-    {
-      "mass" : 100,
-      "timestamp": "1:00"
-    }
+
+    {"mass": "unlimited", "timestamp": "99:00"}
   ];
   int nextMinutes = 0;
   int nextSeconds = 0;
@@ -54,7 +49,8 @@ class BrewTimerState extends State<BrewTimer> {
     //get next goalpost if exists
     nextMinutes = int.parse(steps[step]['timestamp'].split(":")[0]);
     nextSeconds = int.parse(steps[step]['timestamp'].split(":")[1]);
-    messageBoard = "Add to ${steps[step]['mass']}g by ${steps[step]['timestamp']}";
+    messageBoard =
+        "Add to ${steps[step]['mass']}g by ${steps[step]['timestamp']}";
 
     //set periodic time
     timer = Timer.periodic(const Duration(seconds: 1), (_) => addTimer());
@@ -74,18 +70,18 @@ class BrewTimerState extends State<BrewTimer> {
     setState(() {
       seconds++;
 
-      if(seconds >= 60) {
+      if (seconds >= 60) {
         seconds = 0;
         minutes++;
       }
 
       //if step post reached
-      if(minutes == nextMinutes && seconds == nextSeconds) {
+      if (minutes == nextMinutes && seconds == nextSeconds) {
         moveToNextStep();
       }
 
       //stop timer at final step
-      if(minutes == stopMinutes && seconds == stopSeconds + 1) {
+      if (minutes == stopMinutes && seconds == stopSeconds + 1) {
         messageBoard = "You finished the brew!";
         stopTimer();
       }
@@ -96,64 +92,195 @@ class BrewTimerState extends State<BrewTimer> {
     step++;
 
     //only update if more steps left
-    if(step < steps.length) {
+    if (step < steps.length) {
       nextMinutes = int.parse(steps[step]['timestamp'].split(":")[0]);
       nextSeconds = int.parse(steps[step]['timestamp'].split(":")[1]);
-      messageBoard = "Add to ${steps[step]['mass']}g by ${steps[step]['timestamp']}";
+      messageBoard =
+          "Add to ${steps[step]['mass']}g by ${steps[step]['timestamp']}";
     }
+  }
+
+  void finishBrew() {
+
   }
 
   @override
   Widget build(BuildContext context) {
     //if the user id is null, require login
-    if(_auth.currentUser == null) {
-      return const Center(
-        child: Text("Login is required to use this feature"),
-      );
-    }
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          //The next step
-          Text(messageBoard, style: const TextStyle(fontSize: 25),),
-          const SizedBox(
-            height: 50,
-          ),
-          //the timer board
-          Center(
-            child: Row(
+
+    return Consumer<AppDetails>(builder: (context, provider, child) {
+       return provider.recipeKey == "" ?
+       // Free usage mode
+       Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            //The next step
+            Text(
+              messageBoard,
+              style: const TextStyle(fontSize: 25),
+            ),
+            const SizedBox(
+              height: 50,
+            ),
+            //the timer board
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("$minutes",
+                      style: const TextStyle(fontSize: 25)),
+                  const Text(":", style: TextStyle(fontSize: 25)),
+                  Text("$seconds",
+                      style: const TextStyle(fontSize: 25)),
+                ],
+              ),
+            ),
+            const SizedBox(
+              height: 50,
+            ),
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("$minutes", style: const TextStyle(fontSize: 25)),
-                const Text(":", style: TextStyle(fontSize: 25)),
-                Text("$seconds", style: const TextStyle(fontSize: 25)),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 50,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextButton(
-                onPressed: () {
-                  startTimer();
-                },
-                child: const Text("Start"),
-              ),
-              TextButton(
+                TextButton(
                   onPressed: () {
-                    stopTimer();
+                    startTimer();
                   },
-                  child: const Text("Stop")
-              )
-            ],
-          )
+                  child: const Text("Start"),
+                ),
+                TextButton(
+                    onPressed: () {
+                      stopTimer();
+                    },
+                    child: const Text("Stop"))
+              ],
+            )
+          ])
+       // Use a specific recipe key
+      : Center(
+          child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('Recipes')
+                  .where(FieldPath.documentId, isEqualTo: provider.recipeKey)
+                  .snapshots(),
+              builder: (BuildContext context, var snapshot) {
+                if (snapshot.hasError) {
+                  return Text(snapshot.error.toString());
+                }
+                if (!snapshot.hasData) return const Text('no data');
+                var data = snapshot.data?.docs[0];
 
-        ]
-      )
-    );
+                // add the steps to the steps array
+                steps = [];
+                for(var step in data?['steps']) {
+                  steps.add({
+                    "mass" :     step['waterWeight'],
+                    "timestamp": step['timestamp'],
+                  });
+                }
+
+                return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      //The next step
+                      Container(
+                        color: Theme.of(context).primaryColor,
+                        padding: const EdgeInsets.all(20),
+                        margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                        child: Column(
+                          children: [
+                            Text(
+                              "Recipe: ${data?['name']}",
+                              style: TextStyle(fontSize: 28, color: Theme.of(context).secondaryHeaderColor),
+                            ),
+                            Text(
+                                "Brew Method: ${data?['brewMethod']}",
+                              style: TextStyle(fontSize: 22, color: Theme.of(context).secondaryHeaderColor),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                    padding: const EdgeInsets.all(3),
+                                    margin: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                        color: Colors.lightBlueAccent,
+                                        border: Border.all(color: Colors.lightBlueAccent),
+                                        borderRadius: const BorderRadius.all(Radius.circular(20))
+                                    ),
+                                    child: Text("${steps[steps.length - 1]['mass']} grams",)
+                                ),
+                                Container(
+                                    padding: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        border: Border.all(color: Colors.red),
+                                        borderRadius: const BorderRadius.all(Radius.circular(20))
+                                    ),
+                                    child: Text("${data?['temperature']['brewTemp']} ${data?['temperature']['units'] == "Celsius" ? "C" : "F"}", )
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+
+                      const Spacer(
+                        flex: 2,
+                      ),
+                      Text(
+                        messageBoard,
+                        style: const TextStyle(fontSize: 25),
+                      ),
+                      const SizedBox(
+                        height: 50,
+                      ),
+                      //the timer board
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("$minutes",
+                                style: const TextStyle(fontSize: 25)),
+                            const Text(":", style: TextStyle(fontSize: 25)),
+                            Text("$seconds",
+                                style: const TextStyle(fontSize: 25)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 50,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              startTimer();
+                            },
+                            child: const Text("Start"),
+                          ),
+                          TextButton(
+                              onPressed: () {
+                                stopTimer();
+                              },
+                              child: const Text("Stop"))
+                        ],
+                      ),
+                      Spacer(),
+                      TextButton(
+                        style: const ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll<Color>(Colors.red),
+                        ),
+                        onPressed: () {
+                          // Reset recipe key
+                          provider.updateRecipe("");
+
+                          finishBrew();
+                        },
+                        child: const Text("Finish Brew", style: TextStyle(color: Colors.white),),
+                      )
+                    ]);
+              }));
+    });
   }
 }

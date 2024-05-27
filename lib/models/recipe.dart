@@ -1,4 +1,4 @@
-import 'package:brewhelpy/recipe_steps.dart';
+import 'package:brewhelpy/models/recipe_steps.dart';
 
 class Recipe {
   final String name;

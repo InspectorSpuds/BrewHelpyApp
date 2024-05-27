@@ -1,5 +1,8 @@
 // Author: Eugene Keehan
 
+import 'dart:io';
+
+import 'package:path_provider/path_provider.dart';
 import 'package:brewhelpy/service/database_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,16 +21,34 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final DbHandler _handler = DbHandler();
 
-  void _login()  {
+  void _login() async {
     bool loginWasSuccessful = false;
 
     //try to make a login attetmpt with firebase
     try {
-      _auth.signInWithEmailAndPassword(email: _usernameController.text, password: _passwordController.text)
-          .then((cred) {
-        print("Success: ${_auth.currentUser?.uid}");
+      _auth.signInWithEmailAndPassword(email: _usernameController.text, password: _passwordController.text).then((cred) async {
+        // set the login state and rerender
         loginWasSuccessful = true;
         setState(() {});
+
+        //TODO: stretch goal- add user creds to a secret file for persistent login
+        /*
+        // write the credentials to a secret file
+        var directory = await getApplicationDocumentsDirectory();
+        File secretFile = File("${directory.path}/secret.json");
+
+        if(await secretFile.exists()) {
+          await secretFile.delete(recursive: false);
+        }
+
+        secretFile.writeAsString("""
+        {
+          'email': '${_usernameController.text}',
+          'password': '${_passwordController.text}',
+        }
+        """);
+        */
+
       });
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,10 +85,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
+  void initState() {
+    //TODO: stretch goal, add logic to read from secret.json and auto login if persistent login creds
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         title: const Text('Login'),
       ),
       body: (_auth.currentUser?.uid == null) ?

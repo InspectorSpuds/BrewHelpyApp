@@ -30,6 +30,8 @@ environment:
 dependencies:
   firebase_core: ^2.30.1
   firebase_auth: ^4.19.5
+  path_provider:
+  provider:
   fake_cloud_firestore:
   flutterfire_cli:
   cloud_firestore:
@@ -65,6 +67,10 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/icons/Aeropress.png
+    - assets/icons/V60.png
+
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg

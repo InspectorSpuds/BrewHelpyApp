@@ -1,5 +1,6 @@
+import 'package:brewhelpy/models/app_state.dart';
 import 'package:flutter/material.dart';
-import 'package:brewhelpy/recipe.dart';
+import 'package:provider/provider.dart';
 
 class ActionButtons extends StatelessWidget {
   final void Function() onSave;
@@ -8,22 +9,26 @@ class ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        OutlinedButton(
-          onPressed: () { Navigator.pop(context); },
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: onSave,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Theme.of(context).colorScheme.onPrimary,
-          ),
-          child: const Text('Save'),
-        ),
-      ],
+    return Consumer<AppDetails>(
+      builder: (context, provider, child)  {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            OutlinedButton(
+              onPressed: () { provider.updatePage(0);},
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: onSave,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              ),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      }
     );
   }
 }
