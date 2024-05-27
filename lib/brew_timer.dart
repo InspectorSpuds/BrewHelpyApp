@@ -1,5 +1,6 @@
 //Author: ishan Parikh
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class BrewTimer extends StatefulWidget {
@@ -14,6 +15,8 @@ class BrewTimer extends StatefulWidget {
 class BrewTimerState extends State<BrewTimer> {
   //timer variables
   Timer? timer;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   List<Map<String, dynamic>> steps = [
     //note: the timestamps are when to add the mass by
     {
@@ -102,6 +105,12 @@ class BrewTimerState extends State<BrewTimer> {
 
   @override
   Widget build(BuildContext context) {
+    //if the user id is null, require login
+    if(_auth.currentUser == null) {
+      return const Center(
+        child: Text("Login is required to use this feature"),
+      );
+    }
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

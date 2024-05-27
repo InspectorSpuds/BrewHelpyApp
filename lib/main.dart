@@ -22,6 +22,7 @@ void main() async {
   runApp(MyApp(handler));
 }
 
+
 class MyApp extends StatelessWidget {
   DbHandler _handler;
 
@@ -59,6 +60,30 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
+
+
+  void _showNewRecipeForm() {
+    setState(() {
+      showDialog(
+          context: context,
+          builder: (context) => Dialog.fullscreen(
+                child: NewRecipeForm(widget._handler),
+              ));
+    });
+  }
+
+  void _showModifyRecipeForm(){
+    setState(() {
+      showDialog(
+          context: context,
+          builder: (context) => Dialog.fullscreen(
+            child: ModifyRecipeForm(widget._handler),
+          ));
+    });
+  }
+
+
+
   List<Widget> pages = [
     Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -99,26 +124,6 @@ class _MyHomePageState extends State<MyHomePage> {
     LoginScreen(),
   ];
 
-  void _showNewRecipeForm() {
-    setState(() {
-      showDialog(
-          context: context,
-          builder: (context) => Dialog.fullscreen(
-                child: NewRecipeForm(widget._handler),
-              ));
-    });
-  }
-
-  void _showModifyRecipeForm(){
-    setState(() {
-      showDialog(
-          context: context,
-          builder: (context) => Dialog.fullscreen(
-            child: ModifyRecipeForm(widget._handler),
-          ));
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,7 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
             textTheme: Theme
                 .of(context)
                 .textTheme
-                .copyWith(caption: new TextStyle(color: Colors.yellow))),
+                .copyWith(bodySmall: const TextStyle(color: Colors.yellow))),
         child: BottomNavigationBar(
           items: const [
             BottomNavigationBarItem(

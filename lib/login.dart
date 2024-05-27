@@ -6,20 +6,39 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
 
-  LoginScreen({super.key});
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _auth = FirebaseAuth.instance;
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final DbHandler _handler = DbHandler();
 
-  void _login() {
-    // TODO
-    print('Login with: ${_usernameController.text}, ${_passwordController.text}');
+  void _login()  {
+    bool loginWasSuccessful = false;
+
+    //try to make a login attetmpt with firebase
+    try {
+      _auth.signInWithEmailAndPassword(email: _usernameController.text, password: _passwordController.text)
+          .then((cred) {
+        print("Success: ${_auth.currentUser?.uid}");
+        loginWasSuccessful = true;
+        setState(() {});
+      });
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error logging in, try again later')),
+      );
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Successfully logged in')),
+    );
+
   }
 
   void _navigateToCreateUser() {
@@ -29,6 +48,21 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  void _logout() {
+    try {
+      _auth.signOut().then((context) {setState((){});});
+    } on FirebaseAuthException catch(e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error logging out')),
+      );
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Successfully logged out user')),
+    );
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,7 +70,8 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Login'),
       ),
-      body: Padding(
+      body: (_auth.currentUser?.uid == null) ?
+      Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -66,16 +101,25 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
         ),
-      ),
+      ) :
+      Center(
+       child: Column(
+         children: [
+           ElevatedButton(
+               onPressed: _logout,
+               child: const Text("Logout"),
+           )
+         ],
+       )
+      )
     );
   }
 }
 
 class CreateUserForm extends StatefulWidget {
-  final FirebaseAuth auth;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  CreateUserForm({super.key, FirebaseAuth? auth})
-      : auth = auth ?? FirebaseAuth.instance;
+  CreateUserForm({super.key});
 
   @override
   _CreateUserFormState createState() => _CreateUserFormState();
@@ -93,15 +137,7 @@ class _CreateUserFormState extends State<CreateUserForm> {
   }
   void _createUser() async {
     try {
-      //TODO: add in configuration file, logic works fine
-      //UserCredential userCredential = await widget.auth.createUserWithEmailAndPassword(
-      //  email: _newUsernameController.text,
-      //  password: _newPasswordController.text,
-      //);
-
-      _handler.addUser(_newUsernameController.text, _newPasswordController.text);
-
-      print('Creating user with: ${_newUsernameController.text}, ${_newPasswordController.text}');
+      widget._auth.createUserWithEmailAndPassword(email: _newUsernameController.text, password: _newPasswordController.text);
       // Navigate to the home screen or show a success message
       Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
@@ -110,11 +146,11 @@ class _CreateUserFormState extends State<CreateUserForm> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to create user: ${e.message}')),
       );
-    } finally {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Successfully created user')),
-      );
     }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Successfully created user')),
+    );
   }
 
   @override
