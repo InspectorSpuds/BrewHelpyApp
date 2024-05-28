@@ -1,13 +1,8 @@
 // Author: Kevin Bui
-import 'package:brewhelpy/modify_recipe_form.dart';
 import 'package:brewhelpy/new_recipe_form.dart';
 import 'package:brewhelpy/service/database_handler.dart';
-import 'package:brewhelpy/service/firebase_options.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:brewhelpy/main.dart';
 
 void main() {
   // setUpAll(() async {
@@ -15,8 +10,6 @@ void main() {
   //   options: DefaultFirebaseOptions.currentPlatform,
   //   );
   // });
-
-
 
   testWidgets('Filling Out New Recipe Form', (WidgetTester tester) async {
 

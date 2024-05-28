@@ -32,6 +32,8 @@ dependencies:
   firebase_auth: ^4.19.5
   path_provider:
   provider:
+  flutter_local_notifications:
+  flutter_timezone:
   fake_cloud_firestore:
   flutterfire_cli:
   cloud_firestore:

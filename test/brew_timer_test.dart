@@ -21,12 +21,12 @@ void main() {
 
   testWidgets('Brew Timer should stop timer successfully after waiting', (WidgetTester tester) async {
     //Arrange
-    var widget = BrewTimer();
+    var widget = const BrewTimer();
     await tester.pumpWidget(MaterialApp(home: widget));
 
     //Act
     await tester.tap(find.widgetWithText(TextButton, "Start"));
-    await tester.pump(Duration(seconds: 10));
+    await tester.pump(const Duration(seconds: 10));
     await tester.tap(find.widgetWithText(TextButton, "Stop"));
 
     BrewTimerState state = tester.state(find.byWidget(widget));

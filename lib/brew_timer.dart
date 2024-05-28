@@ -1,7 +1,7 @@
 //Author: ishan Parikh
 import 'dart:async';
+import 'package:brewhelpy/service/notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'models/app_state.dart';
@@ -16,7 +16,10 @@ class BrewTimer extends StatefulWidget {
 class BrewTimerState extends State<BrewTimer> {
   //timer variables
   Timer? timer;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  // Initialize push notification service
+  Notifier notifier = Notifier();
+
+  String _recipeName = "None";
 
   List<Map<String, dynamic>> steps = [
     //note: the timestamps are when to add the mass by
@@ -97,6 +100,9 @@ class BrewTimerState extends State<BrewTimer> {
       nextSeconds = int.parse(steps[step]['timestamp'].split(":")[1]);
       messageBoard =
           "Add to ${steps[step]['mass']}g by ${steps[step]['timestamp']}";
+
+      // Send a push notification
+      notifier.showNextStep(_recipeName, steps[step]['timestamp'], steps[step]['mass']);
     }
   }
 
@@ -105,182 +111,199 @@ class BrewTimerState extends State<BrewTimer> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    // Initialize push notifications
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      notifier.init();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     //if the user id is null, require login
 
-    return Consumer<AppDetails>(builder: (context, provider, child) {
-       return provider.recipeKey == "" ?
-       // Free usage mode
-       Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            //The next step
-            Text(
-              messageBoard,
-              style: const TextStyle(fontSize: 25),
-            ),
-            const SizedBox(
-              height: 50,
-            ),
-            //the timer board
-            Center(
-              child: Row(
+    return Center(
+      child: Consumer<AppDetails>(builder: (context, provider, child) {
+         return provider.recipeKey == "" ?
+         // Free usage mode
+         Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              //The next step
+              Text(
+                messageBoard,
+                style: const TextStyle(fontSize: 25),
+              ),
+              const SizedBox(
+                height: 50,
+              ),
+              //the timer board
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("$minutes",
+                        style: const TextStyle(fontSize: 25)),
+                    const Text(":", style: TextStyle(fontSize: 25)),
+                    Text("$seconds",
+                        style: const TextStyle(fontSize: 25)),
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: 50,
+              ),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("$minutes",
-                      style: const TextStyle(fontSize: 25)),
-                  const Text(":", style: TextStyle(fontSize: 25)),
-                  Text("$seconds",
-                      style: const TextStyle(fontSize: 25)),
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 50,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    startTimer();
-                  },
-                  child: const Text("Start"),
-                ),
-                TextButton(
-                    onPressed: () {
-                      stopTimer();
+                  TextButton(
+                    onPressed: () async {
+                      await notifier.showNextStep(_recipeName, steps[step]['timestamp'],
+                          steps[step]['mass'].runtimeType == String ? 0 : steps[step]['mass']);
+                      startTimer();
                     },
-                    child: const Text("Stop"))
-              ],
-            )
-          ])
-       // Use a specific recipe key
-      : Center(
-          child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('Recipes')
-                  .where(FieldPath.documentId, isEqualTo: provider.recipeKey)
-                  .snapshots(),
-              builder: (BuildContext context, var snapshot) {
-                if (snapshot.hasError) {
-                  return Text(snapshot.error.toString());
-                }
-                if (!snapshot.hasData) return const Text('no data');
-                var data = snapshot.data?.docs[0];
+                    child: const Text("Start"),
+                  ),
+                  TextButton(
+                      onPressed: () {
+                        stopTimer();
+                      },
+                      child: const Text("Stop"))
+                ],
+              )
+            ])
+         // Use a specific recipe key
+        : StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('Recipes')
+                .where(FieldPath.documentId, isEqualTo: provider.recipeKey)
+                .snapshots(),
+            builder: (BuildContext context, var snapshot) {
+              if (snapshot.hasError) {
+                return Text(snapshot.error.toString());
+              }
+              if (!snapshot.hasData) return const Text('no data');
+              var data = snapshot.data?.docs[0];
+              _recipeName = data?['name'];
 
-                // add the steps to the steps array
-                steps = [];
-                for(var step in data?['steps']) {
-                  steps.add({
-                    "mass" :     step['waterWeight'],
-                    "timestamp": step['timestamp'],
-                  });
-                }
+              // add the steps to the steps array
+              steps = [];
+              for(var step in data?['steps']) {
+                steps.add({
+                  "mass" :     step['waterWeight'],
+                  "timestamp": step['timestamp'],
+                });
+              }
 
-                return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      //The next step
-                      Container(
-                        color: Theme.of(context).primaryColor,
-                        padding: const EdgeInsets.all(20),
-                        margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
-                        child: Column(
-                          children: [
-                            Text(
-                              "Recipe: ${data?['name']}",
-                              style: TextStyle(fontSize: 28, color: Theme.of(context).secondaryHeaderColor),
-                            ),
-                            Text(
-                                "Brew Method: ${data?['brewMethod']}",
-                              style: TextStyle(fontSize: 22, color: Theme.of(context).secondaryHeaderColor),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                    padding: const EdgeInsets.all(3),
-                                    margin: const EdgeInsets.all(5),
-                                    decoration: BoxDecoration(
-                                        color: Colors.lightBlueAccent,
-                                        border: Border.all(color: Colors.lightBlueAccent),
-                                        borderRadius: const BorderRadius.all(Radius.circular(20))
-                                    ),
-                                    child: Text("${steps[steps.length - 1]['mass']} grams",)
-                                ),
-                                Container(
-                                    padding: const EdgeInsets.all(5),
-                                    decoration: BoxDecoration(
-                                        color: Colors.red,
-                                        border: Border.all(color: Colors.red),
-                                        borderRadius: const BorderRadius.all(Radius.circular(20))
-                                    ),
-                                    child: Text("${data?['temperature']['brewTemp']} ${data?['temperature']['units'] == "Celsius" ? "C" : "F"}", )
-                                ),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-
-                      const Spacer(
-                        flex: 2,
-                      ),
-                      Text(
-                        messageBoard,
-                        style: const TextStyle(fontSize: 25),
-                      ),
-                      const SizedBox(
-                        height: 50,
-                      ),
-                      //the timer board
-                      Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text("$minutes",
-                                style: const TextStyle(fontSize: 25)),
-                            const Text(":", style: TextStyle(fontSize: 25)),
-                            Text("$seconds",
-                                style: const TextStyle(fontSize: 25)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 50,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+              return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    //The next step
+                    Container(
+                      color: Theme.of(context).primaryColor,
+                      padding: const EdgeInsets.all(20),
+                      margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                      child: Column(
                         children: [
-                          TextButton(
-                            onPressed: () {
-                              startTimer();
-                            },
-                            child: const Text("Start"),
+                          Text(
+                            "Recipe: ${data?['name']}",
+                            style: TextStyle(fontSize: 28, color: Theme.of(context).secondaryHeaderColor),
                           ),
-                          TextButton(
-                              onPressed: () {
-                                stopTimer();
-                              },
-                              child: const Text("Stop"))
+                          Text(
+                              "Brew Method: ${data?['brewMethod']}",
+                            style: TextStyle(fontSize: 22, color: Theme.of(context).secondaryHeaderColor),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                  padding: const EdgeInsets.all(3),
+                                  margin: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                      color: Colors.lightBlueAccent,
+                                      border: Border.all(color: Colors.lightBlueAccent),
+                                      borderRadius: const BorderRadius.all(Radius.circular(20))
+                                  ),
+                                  child: Text("${steps[steps.length - 1]['mass']} grams",)
+                              ),
+                              Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                      color: Colors.red,
+                                      border: Border.all(color: Colors.red),
+                                      borderRadius: const BorderRadius.all(Radius.circular(20))
+                                  ),
+                                  child: Text("${data?['temperature']['brewTemp']} ${data?['temperature']['units'] == "Celsius" ? "C" : "F"}", )
+                              ),
+                            ],
+                          )
                         ],
                       ),
-                      Spacer(),
-                      TextButton(
-                        style: const ButtonStyle(
-                          backgroundColor: WidgetStatePropertyAll<Color>(Colors.red),
-                        ),
-                        onPressed: () {
-                          // Reset recipe key
-                          provider.updateRecipe("");
+                    ),
 
-                          finishBrew();
-                        },
-                        child: const Text("Finish Brew", style: TextStyle(color: Colors.white),),
-                      )
-                    ]);
-              }));
-    });
+                    const Spacer(
+                      flex: 2,
+                    ),
+                    Text(
+                      messageBoard,
+                      style: const TextStyle(fontSize: 25),
+                    ),
+                    const SizedBox(
+                      height: 50,
+                    ),
+                    //the timer board
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("$minutes",
+                              style: const TextStyle(fontSize: 25)),
+                          const Text(":", style: TextStyle(fontSize: 25)),
+                          Text("$seconds",
+                              style: const TextStyle(fontSize: 25)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 50,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          onPressed: () async {
+                            await notifier.showNextStep(_recipeName, steps[step]['timestamp'],
+                                steps[step]['mass'].runtimeType == String ? 0 : steps[step]['mass']);
+
+                            startTimer();
+                          },
+                          child: const Text("Start"),
+                        ),
+                        TextButton(
+                            onPressed: () {
+                              stopTimer();
+                            },
+                            child: const Text("Stop"))
+                      ],
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      style: const ButtonStyle(
+                        backgroundColor: WidgetStatePropertyAll<Color>(Colors.red),
+                      ),
+                      onPressed: () {
+                        // Reset recipe key
+                        provider.updateRecipe("");
+
+                        finishBrew();
+                      },
+                      child: const Text("Finish Brew", style: TextStyle(color: Colors.white),),
+                    )
+                  ]);
+            });
+      }),
+    );
   }
 }

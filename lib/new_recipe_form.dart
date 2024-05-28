@@ -12,8 +12,8 @@ import 'package:provider/provider.dart';
 import 'name_field.dart';
 
 class NewRecipeForm extends StatefulWidget {
-  DbHandler _handler;
-  NewRecipeForm(this._handler, {super.key});
+  final DbHandler _handler;
+  const NewRecipeForm(this._handler, {super.key});
 
   @override
   State<NewRecipeForm> createState() => _NewRecipeFormState();

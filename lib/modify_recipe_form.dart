@@ -9,8 +9,7 @@ import 'package:flutter/material.dart';
 import 'name_field.dart';
 
 class ModifyRecipeForm extends StatefulWidget {
-  DbHandler _handler;
-  ModifyRecipeForm(this._handler, {super.key});
+  const ModifyRecipeForm(DbHandler handler, {super.key});
 
   // retrieve recipe from database
 

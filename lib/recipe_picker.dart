@@ -48,12 +48,11 @@ class RecipePickerState extends State<RecipePicker> {
                             return GestureDetector(
                               onTap: () {
                                 // navigate to the brew picker page for all recipes of given type
-                                print(data?['name']);
 
                                 //pop the recipe viewer then go to the brew timer page
                                 Navigator.pop(context);
 
-                                // update recipe id
+                                // update recipe id adn then navigate
                                 provider.updateRecipe(recipeKey);
                                 provider.updatePage(2);
                               },
@@ -66,7 +65,7 @@ class RecipePickerState extends State<RecipePicker> {
                                   //Center Row contents horizontally,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    SizedBox(
+                                    const SizedBox(
                                         width: 50,
                                         height: 50,
                                         child: Text("sdf")),

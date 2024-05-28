@@ -6,23 +6,25 @@ import 'package:brewhelpy/modify_recipe_form.dart';
 import 'package:brewhelpy/new_recipe_form.dart';
 import 'package:brewhelpy/service/database_handler.dart';
 import 'package:brewhelpy/service/firebase_options.dart';
+import 'package:brewhelpy/service/notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'brew_picker.dart';
 
 void main() async {
-  //connect to firebase
+  // Connect to firebase
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Initialize DB
   DbHandler handler = DbHandler();
   handler.init();
 
+  // Create application providers
   runApp(ChangeNotifierProvider<AppDetails> (
     create: (_) => AppDetails(),
     child: MyApp(handler, ),
@@ -30,8 +32,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  DbHandler _handler;
-  MyApp(this._handler, {super.key});
+  final DbHandler _handler;
+  const MyApp(this._handler, {super.key});
 
   // This widget is the root of your application.
   @override
@@ -48,13 +50,13 @@ class MyApp extends StatelessWidget {
           // Text theme
           textTheme: const TextTheme()),
       themeMode: ThemeMode.dark,
-      home: MyHomePage(this._handler,  title: 'BrewHelpy'),
+      home: MyHomePage(_handler,  title: 'BrewHelpy'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  DbHandler _handler;
+  final DbHandler _handler;
 
   MyHomePage(this._handler,{super.key, required this.title});
 
@@ -91,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Widget> pages = [
     const BrewPicker(),
     NewRecipeForm(DbHandler()),
-    const BrewTimer(),
+    BrewTimer(),
     const LoginScreen(),
   ];
 
@@ -131,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.account_box),
-                  label: 'Login',
+                  label: 'User',
                 ),
               ],
               currentIndex: provider.currPage,

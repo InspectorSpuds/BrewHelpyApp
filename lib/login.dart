@@ -1,8 +1,5 @@
 // Author: Eugene Keehan
 
-import 'dart:io';
-
-import 'package:path_provider/path_provider.dart';
 import 'package:brewhelpy/service/database_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,16 +16,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final _auth = FirebaseAuth.instance;
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final DbHandler _handler = DbHandler();
-
   void _login() async {
-    bool loginWasSuccessful = false;
 
     //try to make a login attetmpt with firebase
     try {
       _auth.signInWithEmailAndPassword(email: _usernameController.text, password: _passwordController.text).then((cred) async {
         // set the login state and rerender
-        loginWasSuccessful = true;
         setState(() {});
 
         //TODO: stretch goal- add user creds to a secret file for persistent login
@@ -50,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
         */
 
       });
-    } on FirebaseAuthException catch (e) {
+    } on FirebaseAuthException {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error logging in, try again later')),
       );
@@ -72,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _logout() {
     try {
       _auth.signOut().then((context) {setState((){});});
-    } on FirebaseAuthException catch(e) {
+    } on FirebaseAuthException {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error logging out')),
       );
@@ -86,6 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void initState() {
+    super.initState();
     //TODO: stretch goal, add logic to read from secret.json and auto login if persistent login creds
   }
 
