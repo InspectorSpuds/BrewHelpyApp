@@ -80,16 +80,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return NewRecipeForm(widget._handler);
   }
 
-  void _showModifyRecipeForm() {
-    setState(() {
-      showDialog(
-          context: context,
-          builder: (context) => Dialog.fullscreen(
-                child: ModifyRecipeForm(widget._handler),
-              ));
-    });
-  }
-
   List<Widget> pages = [
     const BrewPicker(),
     NewRecipeForm(DbHandler()),

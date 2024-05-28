@@ -44,6 +44,25 @@ class DbHandler {
     });
   }
 
+
+  Future<void> editRecipe(String recipeKey, Recipe newRecipe) async {
+    return FirebaseFirestore.instance.collection('Recipes').doc('/$recipeKey').update({
+      'temperature': {
+        'units': 'Celsius',
+        'brewTemp':newRecipe.brewTemp,
+      },
+      'brewMethod': newRecipe.brewMethod,
+      'coffeeMass': newRecipe.coffeeMass,
+      'name': newRecipe.name,
+      'totalTime': "${newRecipe.totalTime}",
+      'userId': FirebaseAuth.instance.currentUser?.uid ?? "null",
+      'steps': newRecipe.steps.map((step) => {
+        'waterWeight': step.waterWeight,
+        'timestamp': step.timestamp,
+      }).toList(),
+    });
+  }
+
   Future<DocumentReference> addUser(String username, String password) async {
     return _db.collection('User').add({
       'email': username,

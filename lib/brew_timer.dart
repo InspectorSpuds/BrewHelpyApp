@@ -1,5 +1,6 @@
 //Author: ishan Parikh
 import 'dart:async';
+import 'package:brewhelpy/brew_survey.dart';
 import 'package:brewhelpy/service/notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -106,8 +107,11 @@ class BrewTimerState extends State<BrewTimer> {
     }
   }
 
-  void finishBrew() {
+  void finishBrew(String recipeKey) {
+    //only go to the survey page if there's a recipe key
+    if(recipeKey.isEmpty) return;
 
+    Navigator.push(context, MaterialPageRoute(builder: (context) => BrewSurvey()));
   }
 
   @override
@@ -147,7 +151,7 @@ class BrewTimerState extends State<BrewTimer> {
                     Text("$minutes",
                         style: const TextStyle(fontSize: 25)),
                     const Text(":", style: TextStyle(fontSize: 25)),
-                    Text("$seconds",
+                    Text(seconds.toString().length < 2 ? "$seconds".padLeft(2, '0') : "$seconds",
                         style: const TextStyle(fontSize: 25)),
                   ],
                 ),
@@ -204,7 +208,7 @@ class BrewTimerState extends State<BrewTimer> {
                     Container(
                       color: Theme.of(context).primaryColor,
                       padding: const EdgeInsets.all(20),
-                      margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                      margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                       child: Column(
                         children: [
                           Text(
@@ -261,7 +265,7 @@ class BrewTimerState extends State<BrewTimer> {
                           Text("$minutes",
                               style: const TextStyle(fontSize: 25)),
                           const Text(":", style: TextStyle(fontSize: 25)),
-                          Text("$seconds",
+                          Text(seconds.toString().length < 2 ? "$seconds".padLeft(2, '0') : "$seconds" ,
                               style: const TextStyle(fontSize: 25)),
                         ],
                       ),
@@ -289,17 +293,28 @@ class BrewTimerState extends State<BrewTimer> {
                       ],
                     ),
                     const Spacer(),
-                    TextButton(
-                      style: const ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll<Color>(Colors.red),
-                      ),
-                      onPressed: () {
-                        // Reset recipe key
-                        provider.updateRecipe("");
-
-                        finishBrew();
-                      },
-                      child: const Text("Finish Brew", style: TextStyle(color: Colors.white),),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        TextButton(
+                          style: const ButtonStyle(
+                            backgroundColor: WidgetStatePropertyAll<Color>(Colors.red),
+                          ),
+                          onPressed: () {
+                            finishBrew(provider.recipeKey);
+                          },
+                          child: const Text("Finish Brew", style: TextStyle(color: Colors.white),),
+                        ),
+                        TextButton(
+                          style: const ButtonStyle(
+                            backgroundColor: WidgetStatePropertyAll<Color>(Colors.blueAccent),
+                          ),
+                          onPressed: () {
+                            provider.updateRecipe("");
+                          },
+                          child: const Text("Use Without Recipe", style: TextStyle(color: Colors.white),),
+                        )
+                      ],
                     )
                   ]);
             });
