@@ -164,8 +164,6 @@ class BrewTimerState extends State<BrewTimer> {
                 children: [
                   TextButton(
                     onPressed: () async {
-                      await notifier.showNextStep(_recipeName, steps[step]['timestamp'],
-                          steps[step]['mass'].runtimeType == String ? 0 : steps[step]['mass']);
                       startTimer();
                     },
                     child: const Text("Start"),

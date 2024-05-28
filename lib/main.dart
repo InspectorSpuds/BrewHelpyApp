@@ -84,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
     const BrewPicker(),
     NewRecipeForm(DbHandler()),
     BrewTimer(),
-    const LoginScreen(),
+    LoginScreen(false),
   ];
 
   @override

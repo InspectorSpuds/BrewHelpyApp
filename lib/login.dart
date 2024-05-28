@@ -5,22 +5,23 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
+  bool isTest = false;
 
-  const LoginScreen({super.key});
+  LoginScreen(this.isTest, {super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _auth = FirebaseAuth.instance;
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   void _login() async {
 
     //try to make a login attetmpt with firebase
     try {
-      _auth.signInWithEmailAndPassword(email: _usernameController.text, password: _passwordController.text).then((cred) async {
+      if(!widget.isTest) {
+        FirebaseAuth.instance.signInWithEmailAndPassword(email: _usernameController.text, password: _passwordController.text).then((cred) async {
         // set the login state and rerender
         setState(() {});
 
@@ -43,6 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
         */
 
       });
+      }
     } on FirebaseAuthException {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error logging in, try again later')),
@@ -64,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _logout() {
     try {
-      _auth.signOut().then((context) {setState((){});});
+      FirebaseAuth.instance.signOut().then((context) {setState((){});});
     } on FirebaseAuthException {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error logging out')),
@@ -90,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         title: const Text('Login'),
       ),
-      body: (_auth.currentUser?.uid == null) ?
+      body: (widget.isTest || FirebaseAuth.instance.currentUser?.uid == null) ?
       Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
