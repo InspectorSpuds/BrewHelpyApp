@@ -32,4 +32,24 @@ void main() {
     await tester.tap(find.widgetWithText(ElevatedButton, 'Log In'));
     await tester.pump();
   });
+  testWidgets('Logout function should be called', (WidgetTester tester) async {
+    // Arrange
+    await tester.pumpWidget(MaterialApp(home: LoginScreen()));
+
+    // Log in first
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Username'), 'testUser');
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Password'), 'testPass');
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Log In'));
+    await tester.pump();
+
+    // Act
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Log Out'));
+    await tester.pump();
+
+    // Assert
+    // Check for the logout state or message (requires ScaffoldMessenger to be correctly used in the LoginScreen)
+    expect(find.text('Successfully logged out'), findsOneWidget);
+  });
 }
